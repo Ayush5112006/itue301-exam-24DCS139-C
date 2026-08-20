@@ -11,40 +11,66 @@ async function run() {
     await mongoose.connect(MONGO_URI);
     console.log("Connected to MongoDB\n");
 
-    // ─── Successful Operations ─────────────────────────────────────
-    console.log("=== Successful Operations ===");
+    // ─── Clear existing data ───────────────────────────────────────
+    await Book.deleteMany({});
+    await Member.deleteMany({});
+    await Borrowing.deleteMany({});
+    console.log("Cleared existing data\n");
 
-    const book1 = await Book.create({
-      title: "Data Structures",
-      author: "Mark Allen",
-      category: "CS",
-      isbn: "978-001",
-      available: true,
-    });
-    console.log("Book created:", book1.title);
+    // ─── Seed Books ────────────────────────────────────────────────
+    console.log("=== Seeding Books ===");
+    const books = await Book.insertMany([
+      { title: "Data Structures", author: "Mark Allen", category: "CS", isbn: "978-01", available: true },
+      { title: "Operating Systems", author: "Silberschatz", category: "CS", isbn: "978-02", available: false },
+      { title: "DBMS", author: "Korth", category: "CS", isbn: "978-03", available: true },
+      { title: "Computer Networks", author: "Tanenbaum", category: "CS", isbn: "978-04", available: true },
+      { title: "Web Development", author: "Jon Duckett", category: "IT", isbn: "978-05", available: false },
+    ]);
+    console.log(`Inserted ${books.length} books`);
+    books.forEach((b) => console.log(`  - ${b.title} (${b.available ? "Available" : "Not Available"})`));
 
-    const member1 = await Member.create({
-      name: "Rahul Sharma",
-      email: "rahul@charusat.ac.in",
-      phone: "9876543210",
-      department: "IT",
-    });
-    console.log("Member created:", member1.name);
+    // ─── Seed Members ──────────────────────────────────────────────
+    console.log("\n=== Seeding Members ===");
+    const members = await Member.insertMany([
+      { name: "Rahul Sharma", email: "rahul@charusat.ac.in", phone: "9876543210", department: "IT" },
+      { name: "Priya Patel", email: "priya@charusat.ac.in", phone: "9876543211", department: "CS" },
+      { name: "Amit Kumar", email: "amit@charusat.ac.in", phone: "9876543212", department: "CE" },
+    ]);
+    console.log(`Inserted ${members.length} members`);
+    members.forEach((m) => console.log(`  - ${m.name} (${m.department})`));
 
-    const borrowing1 = await Borrowing.create({
-      memberId: member1._id,
-      bookId: book1._id,
-      borrowDate: new Date("2026-08-20"),
-      returnDate: new Date("2026-09-03"),
-      status: "borrowed",
-    });
-    console.log("Borrowing created:", borrowing1._id);
+    // ─── Seed Borrowings ───────────────────────────────────────────
+    console.log("\n=== Seeding Borrowings ===");
+    const borrowings = await Borrowing.insertMany([
+      {
+        memberId: members[0]._id,
+        bookId: books[1]._id,
+        borrowDate: new Date("2026-08-01"),
+        returnDate: new Date("2026-08-15"),
+        status: "borrowed",
+      },
+      {
+        memberId: members[1]._id,
+        bookId: books[4]._id,
+        borrowDate: new Date("2026-08-05"),
+        returnDate: new Date("2026-08-12"),
+        status: "overdue",
+      },
+      {
+        memberId: members[2]._id,
+        bookId: books[0]._id,
+        borrowDate: new Date("2026-07-20"),
+        returnDate: new Date("2026-08-03"),
+        status: "returned",
+      },
+    ]);
+    console.log(`Inserted ${borrowings.length} borrowings`);
 
     // Verify with populate
-    const populated = await Borrowing.findById(borrowing1._id)
-      .populate("memberId")
-      .populate("bookId");
-    console.log("Populated borrowing:", JSON.stringify(populated, null, 2));
+    const populated = await Borrowing.find().populate("memberId").populate("bookId");
+    populated.forEach((b) => {
+      console.log(`  - ${b.memberId.name} borrowed "${b.bookId.title}" [${b.status}]`);
+    });
 
     // ─── Validation Failures ───────────────────────────────────────
     console.log("\n=== Validation Failures ===");
@@ -72,8 +98,8 @@ async function run() {
     // Invalid borrowing status
     try {
       await Borrowing.create({
-        memberId: member1._id,
-        bookId: book1._id,
+        memberId: members[0]._id,
+        bookId: books[0]._id,
         borrowDate: new Date(),
         returnDate: new Date(),
         status: "invalid_status",
@@ -85,7 +111,7 @@ async function run() {
       }
     }
 
-    console.log("\nDone!");
+    console.log("\nDone! All data seeded successfully.");
   } catch (err) {
     console.error("Error:", err.message);
   } finally {

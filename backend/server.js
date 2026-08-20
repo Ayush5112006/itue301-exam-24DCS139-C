@@ -21,6 +21,8 @@ const books = [
   { id: 1, title: "Data Structures", author: "Mark Allen", category: "CS", available: true },
   { id: 2, title: "Operating Systems", author: "Silberschatz", category: "CS", available: false },
   { id: 3, title: "DBMS", author: "Korth", category: "CS", available: true },
+  { id: 4, title: "Computer Networks", author: "Tanenbaum", category: "CS", available: true },
+  { id: 5, title: "Web Development", author: "Jon Duckett", category: "IT", available: false },
 ];
 
 const borrowings = [

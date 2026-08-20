@@ -28,8 +28,11 @@ const BooksPage = () => {
   if (loading) {
     return (
       <div className="page">
-        <h1>Books</h1>
-        <p className="loading">Loading books...</p>
+        <h1 className="page-title">Books Catalog</h1>
+        <div className="loading-container">
+          <div className="spinner"></div>
+          <span className="loading-text">Fetching books from server...</span>
+        </div>
       </div>
     );
   }
@@ -37,26 +40,44 @@ const BooksPage = () => {
   if (error) {
     return (
       <div className="page">
-        <h1>Books</h1>
-        <p className="error-msg">Error: {error}</p>
+        <h1 className="page-title">Books Catalog</h1>
+        <div className="error-container">
+          <div className="error-icon">⚠️</div>
+          <h2>Failed to Load Books</h2>
+          <p>{error}</p>
+          <button className="btn btn-primary" onClick={() => window.location.reload()}>
+            Try Again
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="page">
-      <h1>Books</h1>
+      <h1 className="page-title">Books Catalog</h1>
+      <p className="page-subtitle">Browse available books in the library</p>
+
+      <div className="count-badge">
+        📚 {data.length} {data.length === 1 ? "book" : "books"} found
+      </div>
+
       {data.length === 0 ? (
-        <p>No books found.</p>
+        <div className="empty-state">
+          <div className="empty-icon">📭</div>
+          <h3>No Books Found</h3>
+          <p>The library catalog is currently empty.</p>
+        </div>
       ) : (
-        data.map((book) => (
-          <BookCard
-            key={book.id}
-            title={book.title}
-            author={book.author}
-            category={book.category}
-            available={book.available}
-          />
+        data.map((book, index) => (
+          <div key={book.id} style={{ animationDelay: `${index * 0.06}s` }}>
+            <BookCard
+              title={book.title}
+              author={book.author}
+              category={book.category}
+              available={book.available}
+            />
+          </div>
         ))
       )}
     </div>
